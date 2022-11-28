@@ -1,5 +1,5 @@
-#ifndef INFRARED_H_
-    #define INFRARED_H_
+#ifndef BARCODE_H_
+    #define BARCODE_H_
 
     #ifndef DRIVERLIB_H
         #define DRIVERLIB_H
@@ -16,25 +16,32 @@
 
     /* Statics */
     static volatile uint16_t curADCResult;
-    static volatile float normalizedADCRes;
     extern int curr;
     extern int prev;
     extern int barCounter;
-    extern int thickBar;
     extern int i;
     extern int mulCount;
-    extern bool inBarCode;
-    extern bool isBlackBar;
-    extern bool isWhiteBar;
-    extern bool match;
-    extern int timerValues[11];
-    extern int multiplyCount[11];
-    extern int resultCount[11];
-    char code[11];
-    extern char *decode[];
 
-    int Infraredmain(void);
-    void TA1_0_IRQHandler(void);
+    extern bool inBarCode;
+
+    extern int timerValuesP1[10];
+    extern int multiplyCountP1[10];
+    extern int *resultCountP1;
+
+    extern int timerValuesP2[10];
+    extern int multiplyCountP2[10];
+    extern int *resultCountP2;
+
+    extern int timerValuesP3[10];
+    extern int multiplyCountP3[10];
+    extern int *resultCountP3;
+
+
+    int infraredMain(void);
     void ADC14_IRQHandler(void);
-    void calculateTime();
+    int *calculateTimerValues(int *timerValues, int *multiplier);
+    void createCode(int *result, int thickbar, char *z);
+    bool checkOnes(char* code);
+    void getBarcode(char decoded1[4], char x[4]);
+    void matchCode(char *code, char *decoded, bool asterixMatch);
 #endif

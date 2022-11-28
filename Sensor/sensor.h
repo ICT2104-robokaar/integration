@@ -5,7 +5,7 @@
         #define DRIVERLIB_H
         #include "driverlib.h"
     #endif
-
+    #include <stdbool.h>
     #define MIN_DISTANCE    15.0f
     #define MIN_DISTANCE_FRONT    5.0f
     #define TICKPERIOD      1000
@@ -32,5 +32,5 @@
     float getHCSR04Distance1(void);
     float getHCSR04Distance2(void);
     uint32_t sensorMain(void);
-    void getBorder(uint32_t *left, uint32_t *front, uint32_t *right);
+    void getBorder(bool *left, bool *front, bool *right);
 #endif /* SENSOR_H_ */

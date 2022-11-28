@@ -1,11 +1,12 @@
 #include "Mapping.h"
+
 uint16_t distanceTravel = 0;
 int16_t visitedCounter = 0;
 uint16_t xTravel = 500;
 uint16_t yTravel = 500;
 uint16_t allNodeCounter = 0;
 
-int mappingMain() {
+/*int main2() {
     initNode(&head);
     head.x = xTravel;
     head.y = yTravel;
@@ -91,7 +92,7 @@ int mappingMain() {
     //    getBorder(&left, &front, &right);
     //}
     releaseMemory(&head);
-}
+}*/
 
 /**
  * From current node, map out shortest path to all other node
@@ -99,7 +100,6 @@ int mappingMain() {
  * Populate a list of instruction to move the car
  */
 void navigateDijkstra(int16_t *facing) {
-
     /*Setup array needed for Dijkstra*/
     uint16_t dist[MAXNODE];
     uint16_t edgeTo[MAXNODE];
@@ -232,18 +232,18 @@ void navigateDijkstra(int16_t *facing) {
 void turn(int16_t currentDirection, int16_t targetDirection) {
     if (currentDirection - targetDirection < 0) {
         if (currentDirection - targetDirection < -2) {
-            turnLeft();
+            mappingTurnLeft();
         }
         else {
-            turnRight();
+            mappingTurnRight();
         }
     }
     else if (currentDirection - targetDirection > 0) {
         if (currentDirection - targetDirection > 2) {
-            turnRight();
+            mappingTurnRight();
         }
         else {
-            turnLeft();
+            mappingTurnLeft();
         }
     }
 
@@ -283,25 +283,37 @@ Node* getNextLeastDistance(uint16_t dist[], bool flag[], uint16_t *workingi) {
     return currentNode;
 }
 
-int main2(void) {
+int mappingMain(void) {
 
     //init sensor
     sensorMain();
+    //init infrared
+    infraredMain();
 
     //Mapping
     initNode(&head);
+    head.x = xTravel;
+    head.y = yTravel;
     Node *workingNode = &head;
-    int facing = SOUTH;
-
+    allNode[allNodeCounter] = &head;
+    allNodeCounter += 1;
+    visitedCoord[visitedCoordCounter][0] = xTravel;
+    visitedCoord[visitedCoordCounter][1] = yTravel;
+    visitedCoord[visitedCoordCounter][2] = workingNode;
+    visitedCoordCounter+=1;
+    int16_t facing = SOUTH;
+    printf("Head node address: %x\n", &head);
     rec(facing, workingNode, 0);
 
     printf("Final linkage\n");
     displayData(&head);
 
-    //Navigation
-        //Read user input for coordinate
-        //Run dijkstra algo to get the shortest path, return a list of steps
-        //Perform movement
+    while (true) {
+        facing = SOUTH;
+        navigateDijkstra(&facing);
+    }
+
+
     releaseMemory(&head);
 
 }
@@ -311,11 +323,12 @@ int main2(void) {
  * to map out the whole maze
  */
 void rec(int facing, Node *workingNode, int counter) {
+    mappingStartCar();
     printf("Rec %d\n", counter);
     printf("facing %d\n", facing);
-    uint32_t left = 0;
-    uint32_t right = 0;
-    uint32_t front = 0;
+    bool left = 0;
+    bool right = 0;
+    bool front = 0;
     int leftRelease = 0;
     int rightRelease = 0;
     int doFront = 1;
@@ -327,108 +340,124 @@ void rec(int facing, Node *workingNode, int counter) {
     }
     Node *newNodePtr;
     while (1) {
-        //displayData(&head);
-        getBorder(&left, &front, &right);
-        printf("%d %d %d\n", left, front, right);
-        printf("%d %d %d\n", xTravel, yTravel, distanceTravel);
-        if (!left && leftRelease || !right && rightRelease) {
-            doFront = 0;
-            hasVisited = isVisited(workingNode, facing);
-            tempTraveled = distanceTravel;
-            if (!hasVisited) {
-                //stop movement
-                //Node newNode;
-                //initNode(&newNode);
-                //newNodePtr = linkNode(workingNode, &newNode, facing);
-                newNodePtr = linkNode(workingNode, facing);
-                if (!left && leftRelease && !(getDistance(newNodePtr, mod(facing-1, 4)))) {
-                    leftRelease = 0;
-                    printf("Turn left and face %d\n", mod(facing - 1, 4));
-                    turnLeft();
-                    rec(mod(facing - 1, 4), newNodePtr, counter+=1);
-
-                    //turn RIGHT
-                    printf("Turn right return\n");
+        if (!hasHump()) {
+            //displayData(&head);
+            getBorder(&left, &front, &right);
+            printf("%d %d %d\n", left, front, right);
+            printf("%d %d %d\n", xTravel, yTravel, distanceTravel);
+            if (!left && leftRelease || !right && rightRelease) {
+                mappingStopCar();
+                doFront = 0;
+                if (counter != 0) {
+                    hasVisited = isVisited(workingNode, facing);
                 }
-                if (!right && rightRelease && !(getDistance(newNodePtr, mod(facing+1, 4)))) {
-                    rightRelease = 0;
-                    printf("Turn right\n");
-                    turnRight();
-                    rec(mod(facing + 1, 4), newNodePtr, counter+=1);
+                tempTraveled = distanceTravel;
+                if (!hasVisited) {
+                    //stop movement
+                    //Node newNode;
+                    //initNode(&newNode);
+                    //newNodePtr = linkNode(workingNode, &newNode, facing);
+                    newNodePtr = linkNode(workingNode, facing);
+                    if (!left && leftRelease && !(getDistance(newNodePtr, mod(facing-1, 4)))) {
+                        leftRelease = 0;
+                        //printf("Turn left and face %d\n", mod(facing - 1, 4));
+                        mappingTurnLeft();
+                        rec(mod(facing - 1, 4), newNodePtr, counter+=1);
 
-                    //turn LEFT
-                    printf("Turn left return\n");
+                        //turn RIGHT
+                        mappingTurnRight();
+                        //printf("Turn right (return)\n");
+                    }
+                    if (!right && rightRelease && !(getDistance(newNodePtr, mod(facing+1, 4)))) {
+                        rightRelease = 0;
+                        //printf("Turn right\n");
+                        mappingTurnRight();
+                        rec(mod(facing + 1, 4), newNodePtr, counter+=1);
+
+                        //turn LEFT
+                        mappingTurnLeft();
+                        //printf("Turn left (return)\n");
+                    }
+                }
+                else {
+                    distanceTravel = 0;
+                    reverse(tempTraveled, facing, false);//reverse car
+                    break;
                 }
             }
-            else {
-                distanceTravel = 0;
-                //reverse car
+            if (left) {
+                printf("Left has border releasing left\n");
+                leftRelease = 1;
+            }
+            if (right) {
+                printf("right has border releasing right\n");
+                rightRelease = 1;
+            }
+            if (front) {
+                mappingStopCar();
+                printf("front has border ending\n");
+                if (left && right) {
+                    tempTraveled = distanceTravel;
+                    newNodePtr = linkNode(workingNode, facing);
+
+
+                }
+                else {
+
+                }
+                reverse(tempTraveled, facing, true);
+                 //AND reverse car by tempTraveled
                 break;
             }
-        }
-        if (left) {
-            printf("Left has border releasing left\n");
-            leftRelease = 1;
-        }
-        if (right) {
-            printf("right has border releasing right\n");
-            rightRelease = 1;
-        }
-        if (front) {
-            printf("front has border ending\n");
-            if (left && right) {
-                tempTraveled = distanceTravel;
-                //Node newNode;
-                //initNode(&newNode);
-                //printf("Front node testing\n");
-                //printf("%d: %d\n", newNode.northNode, newNode.distanceNorth);
-                //printf("%d: %d\n", newNode.eastNode, newNode.distanceEast);
-                //printf("%d: %d\n", newNode.southNode, newNode.distanceSouth);
-                //printf("%d: %d\n", newNode.westNode, newNode.distanceWest);
-
-                //newNodePtr = linkNode(workingNode, &newNode, facing);
-                newNodePtr = linkNode(workingNode, facing);
-
-
+            else if (!doFront) {
+                if (!getDistance(newNodePtr, facing)) {
+                    rec(mod(facing, 4), newNodePtr, counter+=1);
+                }
+                reverse(tempTraveled, facing, true);
+                break;
             }
             else {
+                mappingStartCar();
+            }
+        }
 
-            }
-            reverse(tempTraveled, facing);
-             //AND reverse car by tempTraveled
-            break;
-        }
-        else if (!doFront) {
-            if (!getDistance(workingNode, facing)) {
-                rec(mod(facing, 4), newNodePtr, counter+=1);
-            }
-            reverse(tempTraveled, facing);
-            break;
-        }
-        else {
-            moveForward();
-        }
     }
 
 }
 
 /**
+ * Get data from Accelerometer for has Hump
+ */
+bool hasHump() {
+    //return getHump();
+    return false;
+}
+/**
+ * Start moving the car
+ */
+void mappingStopCar() {
+    //stopCar();
+    printf("Stop car\n");
+}
+/**
  * Turn left for manual turning of car
  */
-void turnLeft() {
+void mappingTurnLeft() {
+    //turnLeft();
     printf("Turning Left\n");
     int i = 0;
-    while (i < 1000000) {
+    while (i < 1000) {
         i+=1;
     }
 }
 /**
  * Turn right for manual turning of car
  */
-void turnRight() {
+void mappingTurnRight() {
+    //turnRight();
     printf("Turning Right\n");
     int i = 0;
-    while (i < 1000000) {
+    while (i < 1000) {
             i+=1;
         }
 
@@ -466,21 +495,23 @@ int mod(int x, int y)
  * For motor module to reverse
  * Used to update current xTravel and yTravel
  */
-void reverse(int distance, int facing) {
+void reverse(int distance, int facing, bool update) {
     printf("Reversing %d from direction %d\n", distance, facing);
-    switch(facing) {
-        case(NORTH):
-            yTravel += distance;
-            break;
-        case(EAST):
-            xTravel -= distance;
-            break;
-        case(SOUTH):
-            yTravel -= distance;
-            break;
-        case(WEST):
-            xTravel += distance;
-            break;
+    if (update) {
+        switch(facing) {
+            case(NORTH):
+                yTravel += distance;
+                break;
+            case(EAST):
+                xTravel -= distance;
+                break;
+            case(SOUTH):
+                yTravel -= distance;
+                break;
+            case(WEST):
+                xTravel += distance;
+                break;
+        }
     }
     printf("Reversed to %d %d\n", xTravel, yTravel);
 }
@@ -639,9 +670,9 @@ int isVisited(Node *currentNode, int facing) {
     }
     printf("Checking Coordinate %d %d\n", x, y);
     int i = 0;
-    for (i = visitedCoordCounter-1; i >= 0; i--) {
-        int visitedx = visitedCoord[i][0];
-        int visitedy = visitedCoord[i][1];
+    for (i = allNodeCounter-1; i >= 0; i--) {
+        int visitedx = allNode[i]->x;
+        int visitedy = allNode[i]->y;
         printf("Checking against %d %d\n", visitedx, visitedy);
         if ((x-OFFSET < visitedx && visitedx < x+OFFSET) && (y-OFFSET < visitedy && visitedy < y+OFFSET)) {
             found = 1;
@@ -652,24 +683,28 @@ int isVisited(Node *currentNode, int facing) {
                     currentNode->northNode = ptr;
                     ptr->distanceSouth = distanceTravel;
                     currentNode->distanceNorth = distanceTravel;
+                    printf("Location visited. Linking %x direction %d with %x direction %d\n", currentNode, NORTH, ptr, SOUTH);
                     break;
                 case(EAST):
                     ptr->westNode = currentNode;
                     currentNode->eastNode = ptr;
                     ptr->distanceWest = distanceTravel;
                     currentNode->distanceEast = distanceTravel;
+                    printf("Location visited. Linking %x direction %d with %x direction %d\n", currentNode, EAST, ptr, WEST);
                     break;
                 case(SOUTH):
                     ptr->northNode = currentNode;
                     currentNode->southNode = ptr;
                     ptr->distanceNorth = distanceTravel;
                     currentNode->distanceSouth = distanceTravel;
+                    printf("Location visited. Linking %x direction %d with %x direction %d\n", currentNode, SOUTH, ptr, NORTH);
                     break;
                 case(WEST):
                     ptr->eastNode = currentNode;
                     currentNode->westNode = ptr;
                     ptr->distanceEast = distanceTravel;
                     currentNode->distanceWest = distanceTravel;
+                    printf("Location visited. Linking %x direction %d with %x direction %d\n", currentNode, WEST, ptr, EAST);
                     break;
             }
             break;
@@ -724,7 +759,7 @@ uint16_t displayDatas(Node *node) {
  * For motor to move forward
  * Used to ask for movement input and update the distanceTravel
  */
-void moveForward() {
+void mappingStartCar() {
     int travel;
     printf("MoveForward: ");
     scanf("%d", &travel);
@@ -754,7 +789,11 @@ void initNode(Node *node) {
  * Link existing node to a new node with direction
  */
 Node* linkNode(Node *baseNode, int facing) {
-    printf("Linking node %d \n", facing);
+    printf("Linking node at direction %d \n", facing);
+    if (distanceTravel <= 10) {
+        printf("Distance %d too short, skip node creation\n", distanceTravel);
+        return baseNode;
+    }
     Node *ptr;
     switch((facing)) {
         case(WEST):
@@ -812,6 +851,7 @@ Node* linkNode(Node *baseNode, int facing) {
     distanceTravel = 0;
     allNode[allNodeCounter] = ptr;
     allNodeCounter += 1;
+    printf("Node created %x \n", ptr);
     return ptr;
 }
 
@@ -861,3 +901,4 @@ void releaseMemory(Node *workingNode) {
     free(workingNode);
     printf("Released\n");
 }
+

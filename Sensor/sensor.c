@@ -264,8 +264,16 @@ uint32_t sensorMain(void)
     Initalise_HCSR04();
 
 }
-void getBorder(uint32_t *left, uint32_t *front, uint32_t *right) {
-    while (countPtr < 4) {
+void getBorder(bool *left, bool *front, bool *right) {
+    printf("Please enter the left front right boundary: ");
+    int a = 0;
+    int b = 0;
+    int c = 0;
+    scanf("%d %d %d", &a, &b, &c);
+    *left = a == 1;
+    *front = b == 1;
+    *right = c == 1;
+    /*while (countPtr < 4) {
         int dist = getHCSR04Distance();
         int dist1 = getHCSR04Distance1();
         int dist2 = getHCSR04Distance2();
@@ -282,9 +290,10 @@ void getBorder(uint32_t *left, uint32_t *front, uint32_t *right) {
     printf("s1 %d cm %d\n", (int)(countstat), countstat < MIN_DISTANCE);
     printf("s2 %d cm %d\n", (int)(countstat1), countstat1 < MIN_DISTANCE_FRONT);
     printf("s3 %d cm %d\n", (int)(countstat2), countstat2 < MIN_DISTANCE);
+    printf("%d, %d, %d, \n", (int)(countstat), (int)(countstat1), (int)(countstat2));
 
     *left = countstat < MIN_DISTANCE;
     *front = countstat1 < MIN_DISTANCE_FRONT;
     *right = countstat2 < MIN_DISTANCE;
-
+    */
 }
