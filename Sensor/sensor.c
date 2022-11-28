@@ -264,16 +264,19 @@ uint32_t sensorMain(void)
     Initalise_HCSR04();
 
 }
+/**
+ * Get 4 samples for each direction, get the average and determine if it is a 1  or 0
+ */
 void getBorder(bool *left, bool *front, bool *right) {
-    printf("Please enter the left front right boundary: ");
+    /*printf("Please enter the left front right boundary: ");
     int a = 0;
     int b = 0;
     int c = 0;
     scanf("%d %d %d", &a, &b, &c);
     *left = a == 1;
     *front = b == 1;
-    *right = c == 1;
-    /*while (countPtr < 4) {
+    *right = c == 1;*/
+    while (countPtr < 4) {
         int dist = getHCSR04Distance();
         int dist1 = getHCSR04Distance1();
         int dist2 = getHCSR04Distance2();
@@ -295,5 +298,5 @@ void getBorder(bool *left, bool *front, bool *right) {
     *left = countstat < MIN_DISTANCE;
     *front = countstat1 < MIN_DISTANCE_FRONT;
     *right = countstat2 < MIN_DISTANCE;
-    */
+
 }
