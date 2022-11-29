@@ -1,9 +1,9 @@
 #include "Mapping.h"
 
-uint16_t distanceTravel = 0;
+//uint16_t distanceTravel = 0;
+//uint16_t xTravel = 500;
+//uint16_t yTravel = 500;
 int16_t visitedCounter = 0;
-uint16_t xTravel = 500;
-uint16_t yTravel = 500;
 uint16_t allNodeCounter = 0;
 
 /*int main2() {
@@ -297,6 +297,7 @@ int mappingMain(void) {
 
     //init sensor
     sensorMain();
+    //motorMain();
     //init infrared
     //infraredMain();
 
@@ -352,7 +353,7 @@ void rec(int facing, Node *workingNode, int counter) {
         //Do when no hump
         if (!hasHump()) {
             //Read ultrasonic data
-            getBorder(&left, &front, &right);
+            mappingGetBorder(&left, &front, &right);
             printf("%d %d %d\n", left, front, right);
             printf("%d %d %d\n", xTravel, yTravel, distanceTravel);
             //When is able to turn left or right and must be restriction released
@@ -469,7 +470,7 @@ void mappingTurnLeft() {
     //turnLeft();
     printf("Turning Left\n");
     int i = 0;
-    while (i < 1000) {
+    while (i < 2000000) {
         i+=1;
     }
 }
@@ -480,10 +481,19 @@ void mappingTurnRight() {
     //turnRight();
     printf("Turning Right\n");
     int i = 0;
-    while (i < 1000) {
+    while (i < 2000000) {
             i+=1;
         }
 
+}
+/**
+ * Turn right for manual turning of car
+ */
+void mappingGetBorder(bool *left, bool *front, bool *right) {
+    //printf("Please enter the left front right boundary: ");
+    //scanf("%d %d %d", left, front, right);
+
+    getBorder(left, front, right);
 }
 /**
  * Get the distance of a node at a direction
@@ -537,6 +547,7 @@ void reverse(int distance, int facing, bool update) {
         }
     }
     printf("Reversed to %d %d\n", xTravel, yTravel);
+    //carReverse(distance);
 }
 /**
  * Get the nearest node to the given coordinate
@@ -770,7 +781,7 @@ uint16_t displayDatas(Node *node) {
     //All to visited node
     visited[visitedCounter] = node;
     visitedCounter+=1;
-    printf("NewNode %x %x:%d  %x:%d  %x:%d  %x:%d\n", node, node->northNode, node->distanceNorth, node->eastNode, node->distanceEast, node->southNode, node->distanceSouth, node->westNode, node->distanceWest);
+    printf("NewNode %10x %10x:%4d  %10x:%4d  %10x:%4d  %10x:%4d\n", node, node->northNode, node->distanceNorth, node->eastNode, node->distanceEast, node->southNode, node->distanceSouth, node->westNode, node->distanceWest);
 
     //To branch out to other nodes in all directions
     if (node->northNode != NULL) {
@@ -948,4 +959,3 @@ void releaseMemory(Node *workingNode) {
     free(workingNode);
     printf("Released\n");
 }
-

@@ -6,14 +6,10 @@
         #include "driverlib.h"
     #endif
     //Include all other modules
-    #ifndef SENSOR_H_
-        #define SENSOR_H_
-        #include "Sensor/sensor.h"
-    #endif
-    #ifndef INFRARED_H_
-        #define INFRARED_H_
-        #include "Infrared/Infrared.h"
-    #endif
+    #include "Sensor/sensor.h"
+    #include "Infrared/Infrared.h"
+    #include "Motor/Motor.h"
+
 
     #include <stdio.h>
     #include <stdbool.h>
@@ -42,12 +38,12 @@
     } Node;
 
     extern uint16_t distanceTravel;
+    extern uint16_t xTravel;
+    extern uint16_t yTravel;
     uint16_t visited[MAXNODE];
     extern int16_t visitedCounter;
     uint16_t visitedCoord[MAXNODE][3];
     uint16_t visitedCoordCounter;
-    extern uint16_t xTravel;
-    extern uint16_t yTravel;
     Node* allNode[MAXNODE];
     extern uint16_t allNodeCounter;
     Node head;
